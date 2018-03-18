@@ -2,9 +2,9 @@ This code is target towards user who are trying to achieve Client Authentication
 
 This document is covered into two parts:
 
-i. Prerequisites
+  i. Prerequisites
 
-ii. Actual code
+  ii. Actual code
 
                                                       Prerequisites
 						      
@@ -13,7 +13,7 @@ There are two prerequisites for this setup:
 1. Creating Client Certificate
 2. Configuring Web Server to do Mutual Authentication. 
 
-Creating Client Certificate:
+**Creating Client Certificate:**
 
 Since you will be doing mutual authentication, you need a client certificate. 
 For mutual authentication, you generally have your client certificate signed by a CA. This CA is added to the trust Store of Web Server. 
@@ -50,24 +50,24 @@ Using this command, you will generate a CSR. clientAuth_reference.key is the sam
 
 4. After generating the CSR, you need to get it signed by a CA. As mentioned before I'm creating my own CA and signing the certificate with that CA. If you're getting your CSR signed by third party CA, you can skip this step. Here are steps for that:
 
-   a. Generate a CA Keypair.
+  a. Generate a CA Keypair.
 
        openssl genrsa -aes256 -out clientCA_reference.key 4096
 This command will generate a 4096 bit RSA Keypair. The output file clientCA_reference.key is an actual RSA Key File, and is AES encrypted in CBC mode. AES Key is generated using a key derivation function from the password entered.
 
-   b. Generate a CA Certificate
+  b. Generate a CA Certificate
 
        openssl req -new -x509 -days 7300 -key clientCA_reference.key -out clientCA.crt
 This command will generate a CA Certificate having name clientCA.crt, and it's validity is 20 years(General Validity of root CA). Generally, Root CA certificates sign an intermediate certificate, and those intermediate certificates are used to sign other CSRs. However, I'm skipping that step and will sign my CSR with this root CA. At this point we've a certificate that we can use to sign the CSR. 
 
-   c. Sign the CSR.
+  c. Sign the CSR.
    
        openssl x509 -req -days 547 -in client.csr -CA clientCA.crt -CAkey clientCA_reference.key -CAcreateserial -out clientAuth.crt
 
 I've signed the CSR with self signed CA that I created in previous step. 
 Now we've completed the perquisite for Creating Client Certificate. 
 
-Configuring Web Server to do Mutual Authentication:
+**Configuring Web Server to do Mutual Authentication:**
 
 Generally Web Server setup will be done by the it's owner. In this setup, they enable mutual authentication, and will configure the client CA Certificate file for client certificate verification. If they've more than one certificate in their certificate chain, they can specify how many intermediate certificates to verify too. 
 I will walk you through what configuration is to be done. I assume that you've configured a SSL Server.
@@ -77,11 +77,11 @@ To enable client authentication, goto your SSL.conf file and uncomment these lin
        SSLVerifyClient require 
        SSLVerifyDepth 10
 
-SSLCACertificateFile is used to set CA certificate verification path where to find CA certificates for client authentication. ca-bundle.crt is the default CA certificate file. By default, it has list of all the well known root CA certificates in it. Since we're using our own self signed root CA, we'll need to put that CA certificate file here. If you want to use this file, you can paste your PEM encoded certificate in this file. Otherwise you can create a new file and put it's path there. I'm creating a new file, and modifying it's path, as I only want to trust my specific CA. 
+**SSLCACertificateFile** is used to set CA certificate verification path where to find CA certificates for client authentication. ca-bundle.crt is the default CA certificate file. By default, it has list of all the well known root CA certificates in it. Since we're using our own self signed root CA, we'll need to put that CA certificate file here. If you want to use this file, you can paste your PEM encoded certificate in this file. Otherwise you can create a new file and put it's path there. I'm creating a new file, and modifying it's path, as I only want to trust my specific CA. 
 
-SSLVerifyClient This property is used to force clients to authenticate using certificates.
+**SSLVerifyClient** This property is used to force clients to authenticate using certificates.
 
-SSLVerifyDepth Depth is a number which specifies how deeply to verify the certificate issuer chain before deciding the certificate is not valid.
+**SSLVerifyDepth** Depth is a number which specifies how deeply to verify the certificate issuer chain before deciding the certificate is not valid.
 
 If you do not want to do mutual authentication for whole website, instead force clients to authenticate using certificates for a particular URL, you can use Location tag to achieve so. This is how you I've setup Client Certificate verification. This configuration goes into ssl.conf file inside VirtualHost directive.
 
@@ -161,7 +161,7 @@ Here's the CLI Reference:
                                 your KMS Key.
     --verify                    This option is used to verify if the key
                                 and certificate are a match.
-Sample command:
+**Sample command:**
 
 java -Djava.library.path=/opt/cloudhsm/lib/ -jar clientAuth.jar --cert-file /home/ec2-user/clientCertChain.crt --hsm-user-name cryptoUser --key-alias clientAuthRSAPrivKey --url https://clientauth.hsm.obscure.ninja/mutualAuthExample/ --hsm-user-password passw0rd@123 
 
